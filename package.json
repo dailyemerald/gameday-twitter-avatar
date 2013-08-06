@@ -1,0 +1,12 @@
+{
+  "author": "Ivar Vong",
+  "name": "twitter-avatar-redirect",
+  "version": "0.1.0",
+  "dependencies": {
+    "express": "3.x",
+    "memjs": "0.6.x"
+  },
+  "engines": {
+    "node": "0.10.15"
+  }
+}
