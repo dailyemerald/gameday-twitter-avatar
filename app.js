@@ -1,26 +1,54 @@
-var express = require('express');
-var MemJS = require('memjs').Client
+var express = require('express')
+  , cheerio = require('cheerio')
+  , request = require('request')
+  , memjs = require('memjs')
+  , client = memjs.Client.create()
+  , app = express();
 
-memjs = MemJS.create();
+var time_since = function(init_time) {
+	return (new Date()).getTime() - init_time;
+}
 
-var app = express.createServer(express.logger());
+app.get('/twitter/:nickname', function(req, res) {	
+	var start_time = (new Date()).getTime();
+	var nickname = req.params.nickname;
+	client.get(nickname, function(err, value) {
+		if (value) {
+			console.log("HIT: ", nickname, "in", time_since(start_time), "ms");
+			res.redirect(value.toString());
+		} else {
+			get_avatar_url(nickname, function(err, url) {
+				if (!err) {
+					console.log("MISS: ", nickname, "in", time_since(start_time), "ms");					
+					res.redirect(url);
+					client.set(nickname, url);
+				} else {
+					console.log("err in get_avatar_url:", err, "in", time_since(start_time), "ms");
+					res.send(500, err);
+				}
+			});
+		}
+	});
+});
 
-app.get('/', function(request, response) {
-	memjs.get("latest", function(err, value) {
-	if (value) {
-		response.send(value.toString());
-	} else {
-		response.send('No value yet');
-	}
+app.get('/twitter/:nickname/clear', function(req, res) {
+	client.delete(req.params.nickname, function(err, val) {
+		res.json({err: err, val: val});
 	})
 });
 
-app.get('/set/:value', function(request, response) {
-	memjs.set("latest", request.params.value);
-	response.redirect('/');
-});
+var get_avatar_url = function(nickname, callback) {
+	var url = "https://twitter.com/" + nickname; // TODO: is this safe?
+	request(url, function(err, resp, body) {
+		if (!err) {
+			var $ = cheerio.load(body);
+			var images = $('.profile-header-inner img');
+			var image_url = images[0].attribs.src; // TODO: robust?
+			callback(null, image_url);
+		} else {
+			callback(err, null);
+		} 
+	});
+}
 
-var port = process.env.PORT || 3000;
-app.listen(port, function() {
-	console.log("Listening on " + port);
-});
+app.listen(process.env.PORT || 3000);
