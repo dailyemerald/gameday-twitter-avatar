@@ -39,16 +39,21 @@ app.get('/twitter/:nickname/clear', function(req, res) {
 
 var get_avatar_url = function(nickname, callback) {
 	var url = "https://twitter.com/" + nickname; // TODO: is this safe?
-	request(url, function(err, resp, body) {
-		if (!err) {
-			var $ = cheerio.load(body);
-			var images = $('.profile-header-inner img');
-			var image_url = images[0].attribs.src; // TODO: robust?
-			callback(null, image_url);
-		} else {
-			callback(err, null);
-		} 
-	});
-}
+	try {
+		request(url, function(err, resp, body) {
+			if (!err) {
+				var $ = cheerio.load(body);
+				var images = $('.profile-header-inner img');
+				var image_url = images[0].attribs.src; // TODO: robust?
+				callback(null, image_url);
+			} else {
+				callback(err, null);
+			} 
+		});
+	} catch (e) {
+		console.log("error in get_avatar_url: ", e);
+		callback(e, null);
+	}
+ }
 
 app.listen(process.env.PORT || 3000);
