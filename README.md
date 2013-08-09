@@ -2,7 +2,7 @@ gameday-twitter-avatar
 ======================
 
 
-  <img src="http://gameday-twitter-avatar.herokuapp.com/twitter/ivarvong">
+    <img src="http://gameday-twitter-avatar.herokuapp.com/twitter/ivarvong">
   
 ... for instance.
 
